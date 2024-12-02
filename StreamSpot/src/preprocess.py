@@ -18,7 +18,7 @@ import psycopg2
 from psycopg2 import extras as ex
 
 connect = psycopg2.connect(database = 'streamspot',
-                           host = '/var/run/postgresql/',
+                           host = 'localhost',
                            user = 'postgres',
                            password = 'postgres',
                            port = '5432'
@@ -30,7 +30,7 @@ cur = connect.cursor()
 connect.rollback()
 
 if process_raw_data:
-    path = "/the/absolute/path/of/raw_log"  # The paths to the dataset.
+    path = "/home/shahidul/dev/project/academic/kairos/data/streamspot/all.tsv"  # The paths to the dataset.
     datalist = []
     with open(path) as f:
         for line in tqdm(f):
