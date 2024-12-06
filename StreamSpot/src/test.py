@@ -24,34 +24,40 @@ import math
 import copy
 import re
 import time
-
+# Choosing CUDA to run the code if available in the host machine
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-device = 'cpu'
 # msg structure:      [src_node_feature,edge_attr,dst_node_feature]
+# Load the first graph as initial training dataset then load others
 train_data = torch.load("../data/graph_0.TemporalData")
 
+# maximum number of nodes present over all training dataset
 max_node_num = 5045000
 min_dst_idx, max_dst_idx = 0, max_node_num
+# Use last neighbor load for loading neighbors of a node
 neighbor_loader = LastNeighborLoader(max_node_num, size=5, device=device)
 
-
+# Graph attention embedding layer setup
 class GraphAttentionEmbedding(torch.nn.Module):
     def __init__(self, in_channels, out_channels, msg_dim, time_enc):
         super(GraphAttentionEmbedding, self).__init__()
         self.time_enc = time_enc
         edge_dim = msg_dim + time_enc.out_channels
+        # Set transformer convolution as the filer of this layer
         self.conv = TransformerConv(in_channels, out_channels // 2, heads=2,
                                     dropout=0.1, edge_dim=edge_dim)
 
+    # Method will be called while passing input through this layer
     def forward(self, x, last_update, edge_index, t, msg):
         rel_t = last_update[edge_index[0]] - t
         rel_t_enc = self.time_enc(rel_t.to(x.dtype))
         edge_attr = torch.cat([rel_t_enc, msg], dim=-1)
+        # Apply the convolution operation
         return self.conv(x, edge_index, edge_attr)
-
+# Link/Edge predictor configuration
 class LinkPredictor(torch.nn.Module):
     def __init__(self, in_channels):
         super(LinkPredictor, self).__init__()
+        # Linear transformation for source and destination node embeddings
         self.lin_src = Linear(in_channels, in_channels)
         self.lin_dst = Linear(in_channels, in_channels)
         self.lin_final = Linear(in_channels, 1)
@@ -59,11 +65,12 @@ class LinkPredictor(torch.nn.Module):
     def forward(self, z_src, z_dst):
         h = self.lin_src(z_src) + self.lin_dst(z_dst)
         h = h.relu()
+        # Apply forward pass to predict the link score
         return self.lin_final(h)
 
-
+# Size of the memory dimension
 memory_dim = time_dim = embedding_dim = 200
-
+# Crate a memory layer
 memory = TGNMemory(
     max_node_num,
     train_data.msg.size(-1),
@@ -73,6 +80,7 @@ memory = TGNMemory(
     aggregator_module=LastAggregator(),
 ).to(device)
 
+# Create attention embedding layer
 gnn = GraphAttentionEmbedding(
     in_channels=memory_dim,
     out_channels=embedding_dim,
@@ -80,8 +88,10 @@ gnn = GraphAttentionEmbedding(
     time_enc=memory.time_enc,
 ).to(device)
 
+# Create link predictor
 link_pred = LinkPredictor(in_channels=embedding_dim).to(device)
 
+# Use Adam optimizer
 optimizer = torch.optim.Adam(
     set(memory.parameters()) | set(gnn.parameters())
     | set(link_pred.parameters()), lr=0.0001)
