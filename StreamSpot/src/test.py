@@ -28,7 +28,7 @@ import time
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # msg structure:      [src_node_feature,edge_attr,dst_node_feature]
 # Load the first graph as initial training dataset then load others
-train_data = torch.load("../data/graph_0.TemporalData")
+train_data = torch.load("/home/shahidul2k9/data/streamspot/graph/graph_0.TemporalData")
 
 # maximum number of nodes present over all training dataset
 max_node_num = 5045000
@@ -144,19 +144,20 @@ def test_new(inference_data):
     loss = total_loss / inference_data.num_events
     return float(torch.tensor(aps).mean()), float(
         torch.tensor(aucs).mean()), pos_out.sigmoid().cpu(), neg_out.sigmoid().cpu(), loss
-
-m = torch.load("model_saved.pt")
+# Load trained model
+m = torch.load("/home/shahidul2k9/data/streamspot/model_saved.pt")
+# Set model layers to evaluation mode
 memory, gnn, link_pred, neighbor_loader = m
 memory.eval()
 gnn.eval()
 link_pred.eval()
 
-if os.path.exists("val_ans_old.pt") is not True:
+if os.path.exists("/home/shahidul2k9/data/streamspot/val_ans_old.pt") is not True:
     graph_label = []
     all_loss = []
     start = time.time()
     for i in tqdm(range(1, 25)):
-        path = "../data/graph_" + str(i) + ".TemporalData"
+        path = "/home/shahidul2k9/data/streamspot/graph/graph_" + str(i) + ".TemporalData"
         test_graph = torch.load(path)
         test_ap, test_auc, pos_out_test, neg_out_test, loss_test = test_new(test_graph)
         print(f'Graph:{i}, Loss: {loss_test:.4f}')
@@ -164,7 +165,7 @@ if os.path.exists("val_ans_old.pt") is not True:
         graph_label.append(0)
 
     for i in tqdm(range(101, 125)):
-        path = "../data/graph_" + str(i) + ".TemporalData"
+        path = "/home/shahidul2k9/data/streamspot/graph/graph_" + str(i) + ".TemporalData"
         test_graph = torch.load(path)
         test_ap, test_auc, pos_out_test, neg_out_test, loss_test = test_new(test_graph)
         print(f'Graph:{i}, Loss: {loss_test:.4f}')
@@ -172,7 +173,7 @@ if os.path.exists("val_ans_old.pt") is not True:
         graph_label.append(0)
 
     for i in tqdm(range(201, 225)):
-        path = "../data/graph_" + str(i) + ".TemporalData"
+        path = "/home/shahidul2k9/data/streamspot/graph/graph_" + str(i) + ".TemporalData"
         test_graph = torch.load(path)
         test_ap, test_auc, pos_out_test, neg_out_test, loss_test = test_new(test_graph)
         print(f'Graph:{i}, Loss: {loss_test:.4f}')
@@ -180,7 +181,7 @@ if os.path.exists("val_ans_old.pt") is not True:
         graph_label.append(0)
 
     for i in tqdm(range(401, 425)):
-        path = "../data/graph_" + str(i) + ".TemporalData"
+        path = "/home/shahidul2k9/data/streamspot/graph/graph_" + str(i) + ".TemporalData"
         test_graph = torch.load(path)
         test_ap, test_auc, pos_out_test, neg_out_test, loss_test = test_new(test_graph)
         print(f'Graph:{i}, Loss: {loss_test:.4f}')
@@ -188,7 +189,7 @@ if os.path.exists("val_ans_old.pt") is not True:
         graph_label.append(0)
 
     for i in tqdm(range(501, 525)):
-        path = "../data/graph_" + str(i) + ".TemporalData"
+        path = "/home/shahidul2k9/data/streamspot/graph/graph_" + str(i) + ".TemporalData"
         test_graph = torch.load(path)
         test_ap, test_auc, pos_out_test, neg_out_test, loss_test = test_new(test_graph)
         print(f'Graph:{i}, Loss: {loss_test:.4f}')
@@ -198,9 +199,9 @@ if os.path.exists("val_ans_old.pt") is not True:
     print(f"test cost time:{time.time() - start}")
 
     val_ans_old = [ all_loss, graph_label]
-    torch.save(val_ans_old, "val_ans_old.pt")
+    torch.save(val_ans_old, "/home/shahidul2k9/data/streamspot/val_ans_old.pt")
 else:
-    val_ans = torch.load("val_ans_old.pt")
+    val_ans = torch.load("/home/shahidul2k9/data/streamspot/val_ans_old.pt")
     loss_list = []
     for i in val_ans[0]:
         loss_list.append(i)
@@ -231,7 +232,7 @@ if os.path.exists("test_ans_old.pt") is not True:
     all_loss = []
     start = time.time()
     for i in tqdm(range(25, 100)):
-        path = "../data/graph_" + str(i) + ".TemporalData"
+        path = "/home/shahidul2k9/data/streamspot/graph/graph_" + str(i) + ".TemporalData"
         test_graph = torch.load(path)
         test_ap, test_auc, pos_out_test, neg_out_test, loss_test = test_new(test_graph)
         print(f'Graph:{i}, Loss: {loss_test:.4f}')
@@ -239,7 +240,7 @@ if os.path.exists("test_ans_old.pt") is not True:
         graph_label.append(0)
 
     for i in tqdm(range(125, 200)):
-        path = "../data/graph_" + str(i) + ".TemporalData"
+        path = "/home/shahidul2k9/data/streamspot/graph/graph_" + str(i) + ".TemporalData"
         test_graph = torch.load(path)
         test_ap, test_auc, pos_out_test, neg_out_test, loss_test = test_new(test_graph)
         print(f'Graph:{i}, Loss: {loss_test:.4f}')
@@ -247,7 +248,7 @@ if os.path.exists("test_ans_old.pt") is not True:
         graph_label.append(0)
 
     for i in tqdm(range(225, 300)):
-        path = "../data/graph_" + str(i) + ".TemporalData"
+        path = "/home/shahidul2k9/data/streamspot/graph/graph_" + str(i) + ".TemporalData"
         test_graph = torch.load(path)
         test_ap, test_auc, pos_out_test, neg_out_test, loss_test = test_new(test_graph)
         print(f'Graph:{i}, Loss: {loss_test:.4f}')
@@ -255,7 +256,7 @@ if os.path.exists("test_ans_old.pt") is not True:
         graph_label.append(0)
 
     for i in tqdm(range(300, 400)):
-        path = "../data/graph_" + str(i) + ".TemporalData"
+        path = "/home/shahidul2k9/data/streamspot/graph/graph_" + str(i) + ".TemporalData"
         test_graph = torch.load(path)
         test_ap, test_auc, pos_out_test, neg_out_test, loss_test = test_new(test_graph)
         print(f'Graph:{i}, Loss: {loss_test:.4f}')
@@ -263,7 +264,7 @@ if os.path.exists("test_ans_old.pt") is not True:
         graph_label.append(1)
 
     for i in tqdm(range(425, 500)):
-        path = "../data/graph_" + str(i) + ".TemporalData"
+        path = "/home/shahidul2k9/data/streamspot/graph/graph_" + str(i) + ".TemporalData"
         test_graph = torch.load(path)
         test_ap, test_auc, pos_out_test, neg_out_test, loss_test = test_new(test_graph)
         print(f'Graph:{i}, Loss: {loss_test:.4f}')
@@ -271,7 +272,7 @@ if os.path.exists("test_ans_old.pt") is not True:
         graph_label.append(0)
 
     for i in tqdm(range(525, 600)):
-        path = "../data/graph_" + str(i) + ".TemporalData"
+        path = "/home/shahidul2k9/data/streamspot/graph/graph_" + str(i) + ".TemporalData"
         test_graph = torch.load(path)
         test_ap, test_auc, pos_out_test, neg_out_test, loss_test = test_new(test_graph)
         print(f'Graph:{i}, Loss: {loss_test:.4f}')
@@ -280,12 +281,12 @@ if os.path.exists("test_ans_old.pt") is not True:
 
     print(f"test cost time:{time.time() - start}")
     test_ans_old = [all_loss, graph_label]
-    torch.save(test_ans_old, "test_ans_old.pt")
+    torch.save(test_ans_old, "/home/shahidul2k9/data/streamspot/test_ans_old.pt")
 else:
     labels = []
     preds = []
 
-    test_ans = torch.load("test_ans_old.pt")
+    test_ans = torch.load("/home/shahidul2k9/data/streamspot/test_ans_old.pt")
     test_loss_list = []
     index = 0
     for i in test_ans[0]:
