@@ -26,6 +26,7 @@ import re
 import time
 # Choosing CUDA to run the code if available in the host machine
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+#device = 'cpu'
 # msg structure:      [src_node_feature,edge_attr,dst_node_feature]
 # Load the first graph as initial training dataset then load others
 train_data = torch.load("/home/shahidul2k9/data/streamspot/graph/graph_0.TemporalData")
@@ -145,14 +146,14 @@ def test_new(inference_data):
     return float(torch.tensor(aps).mean()), float(
         torch.tensor(aucs).mean()), pos_out.sigmoid().cpu(), neg_out.sigmoid().cpu(), loss
 # Load trained model
-m = torch.load("/home/shahidul2k9/data/streamspot/model_saved.pt")
+m = torch.load("/home/shahidul2k9/data/streamspot/model/model_saved.pt")
 # Set model layers to evaluation mode
 memory, gnn, link_pred, neighbor_loader = m
 memory.eval()
 gnn.eval()
 link_pred.eval()
 
-if os.path.exists("/home/shahidul2k9/data/streamspot/val_ans_old.pt") is not True:
+if os.path.exists("/home/shahidul2k9/data/streamspot/model/val_ans_old.pt") is not True:
     graph_label = []
     all_loss = []
     start = time.time()
@@ -199,9 +200,9 @@ if os.path.exists("/home/shahidul2k9/data/streamspot/val_ans_old.pt") is not Tru
     print(f"test cost time:{time.time() - start}")
 
     val_ans_old = [ all_loss, graph_label]
-    torch.save(val_ans_old, "/home/shahidul2k9/data/streamspot/val_ans_old.pt")
+    torch.save(val_ans_old, "/home/shahidul2k9/data/streamspot/model/val_ans_old.pt")
 else:
-    val_ans = torch.load("/home/shahidul2k9/data/streamspot/val_ans_old.pt")
+    val_ans = torch.load("/home/shahidul2k9/data/streamspot/model/val_ans_old.pt")
     loss_list = []
     for i in val_ans[0]:
         loss_list.append(i)
@@ -227,7 +228,7 @@ def classifier_evaluation(y_test, y_test_pred):
     return precision,recall,fscore,accuracy,auc_val
 
 
-if os.path.exists("test_ans_old.pt") is not True:
+if os.path.exists("/home/shahidul2k9/data/streamspot/model/test_ans_old.pt") is not True:
     graph_label = []
     all_loss = []
     start = time.time()
@@ -281,12 +282,12 @@ if os.path.exists("test_ans_old.pt") is not True:
 
     print(f"test cost time:{time.time() - start}")
     test_ans_old = [all_loss, graph_label]
-    torch.save(test_ans_old, "/home/shahidul2k9/data/streamspot/test_ans_old.pt")
+    torch.save(test_ans_old, "/home/shahidul2k9/data/streamspot/model/test_ans_old.pt")
 else:
     labels = []
     preds = []
 
-    test_ans = torch.load("/home/shahidul2k9/data/streamspot/test_ans_old.pt")
+    test_ans = torch.load("/home/shahidul2k9/data/streamspot/model/test_ans_old.pt")
     test_loss_list = []
     index = 0
     for i in test_ans[0]:
