@@ -160,11 +160,13 @@ cython_debug/
 #.idea/
 
 *DS_Store
-/DARPA/*/graph_*
-/DARPA/*/models
-/DARPA/*/gnn
-DARPA/*/node_ID
-DARPA/*/node_IDF*
-/DARPA/*/train_graph*
-DARPA/*/rel2vec
-DARPA/*/node2higvec
+/DARPA/**/graph_*
+!/DARPA/**/graph_visual
+/DARPA/**/models
+/DARPA/**/gnn
+DARPA/**/node_ID
+DARPA/**/node_IDF*
+/DARPA/**/train_graph*
+DARPA/**/rel2vec
+DARPA/**/node2higvec
+

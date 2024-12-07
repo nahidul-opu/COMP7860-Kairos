@@ -1,7 +1,7 @@
 // the test
 digraph MyPicture {
 	graph [rankdir=LR]
-	2639042675578648078 [label="{'subject': 'awk'}2" color=blue shape=box]
-	6433382154792259322 [label="{'file': '/usr/bin/awk'}2" color=blue shape=oval]
-	2639042675578648078 -> 6433382154792259322 [label=EVENT_EXECUTE color=blue]
+	5394640976686908354 [label="{'subject': 'ifconfig'}2" color=blue shape=box]
+	5683459492189372215 [label="{'file': '/sbin/ifconfig'}2" color=blue shape=oval]
+	5394640976686908354 -> 5683459492189372215 [label=EVENT_EXECUTE color=blue]
 }
