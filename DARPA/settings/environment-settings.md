@@ -10,7 +10,9 @@ We use the following settings to run the experiments reported in the paper:
 
 ## Python Libraries
 Install the following libraries, 
-or use our [`requirements.txt`](requirements.txt):
+or use our requirements.txt file
+-> GPU : [`requirements.txt`](requirements.txt):
+-> CPU : [`requirements.txt`](requirements%20fo%20cpu%20only%20(made%20for%20COMP7860)/requirements.txt)
 ```commandline
 conda create -n kairos python=3.9
 conda activate kairos
