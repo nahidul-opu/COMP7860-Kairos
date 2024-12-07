@@ -4,11 +4,10 @@ import torch
 from tqdm import tqdm
 import hashlib
 
-# Import configuration settings and utility functions.
+
 from config import *
 from kairos_utils import *
 
-# List of JSON files to process. These files contain logs for analysis.
 filelist = [
     "ta1-cadets-e3-official.json",
     "ta1-cadets-e3-official.json.1",
@@ -23,7 +22,6 @@ filelist = [
 ]
 
 
-# Converts a given string into an SHA-256 hash and returns the hexadecimal digest.
 def stringtomd5(originstr):
     originstr = originstr.encode("utf-8")
     signaturemd5 = hashlib.sha256()
@@ -31,50 +29,42 @@ def stringtomd5(originstr):
     return signaturemd5.hexdigest()
 
 
-# Parses network flow information from logs and stores them in the database.
 def store_netflow(file_path, cur, connect):
-    netobjset = set()  # Set of unique network object hashes.
-    netobj2hash = {}  # Maps UUIDs to hashes and properties.
-
-    # Loop through all files in the file list.
+    # Parse data from logs
+    netobjset = set()
+    netobj2hash = {}
     for file in tqdm(filelist):
         with open(file_path + file, "r") as f:
             for line in f:
                 if "NetFlowObject" in line:
                     try:
-                        # Extract relevant fields from the log line using regex.
                         res = re.findall(
                             'NetFlowObject":{"uuid":"(.*?)"(.*?)"localAddress":"(.*?)","localPort":(.*?),"remoteAddress":"(.*?)","remotePort":(.*?),',
                             line,
                         )[0]
 
-                        # Extract individual properties.
                         nodeid = res[0]
                         srcaddr = res[2]
                         srcport = res[3]
                         dstaddr = res[4]
                         dstport = res[5]
 
-                        # Create a property string and compute its hash.
                         nodeproperty = (
                             srcaddr + "," + srcport + "," + dstaddr + "," + dstport
                         )
                         hashstr = stringtomd5(nodeproperty)
-
-                        # Store mappings between UUID, hash, and properties.
                         netobj2hash[nodeid] = [hashstr, nodeproperty]
                         netobj2hash[hashstr] = nodeid
                         netobjset.add(hashstr)
                     except:
-                        pass  # Ignore lines that do not match the expected format.
+                        pass
 
-    # Prepare data for database insertion.
+    # Store data into database
     datalist = []
     for i in netobj2hash.keys():
-        if len(i) != 64:  # Ensure valid UUID length.
+        if len(i) != 64:
             datalist.append([i] + [netobj2hash[i][0]] + netobj2hash[i][1].split(","))
 
-    # Insert data into the database.
     sql = """insert into netflow_node_table
                          values %s
             """
@@ -82,14 +72,12 @@ def store_netflow(file_path, cur, connect):
     connect.commit()
 
 
-# Parses subject node information from logs and stores it in the database.
 def store_subject(file_path, cur, connect):
-    scusess_count = 0  # Count of successfully parsed subjects.
-    fail_count = 0  # Count of failed parsing attempts.
-    subject_objset = set()  # Set of unique subject nodes.
-    subject_obj2hash = {}  # Maps subject UUID to the `exec` field.
-
-    # Loop through all files in the file list.
+    # Parse data from logs
+    scusess_count = 0
+    fail_count = 0
+    subject_objset = set()
+    subject_obj2hash = {}  #
     for file in tqdm(filelist):
         with open(file_path + file, "r") as f:
             for line in f:
@@ -99,7 +87,6 @@ def store_subject(file_path, cur, connect):
                         line,
                     )
                     try:
-                        # Store UUID to `exec` mapping.
                         subject_obj2hash[subject_uuid[0][0]] = subject_uuid[0][-1]
                         scusess_count += 1
                     except:
@@ -108,16 +95,13 @@ def store_subject(file_path, cur, connect):
                         except:
                             pass
                         fail_count += 1
-
-    # Prepare data for database insertion.
+    # Store into database
     datalist = []
     for i in subject_obj2hash.keys():
-        if len(i) != 64:  # Ensure valid UUID length.
+        if len(i) != 64:
             datalist.append(
                 [i] + [stringtomd5(subject_obj2hash[i]), subject_obj2hash[i]]
             )
-
-    # Insert data into the database.
     sql = """insert into subject_node_table
                          values %s
             """
@@ -125,11 +109,8 @@ def store_subject(file_path, cur, connect):
     connect.commit()
 
 
-# Processes file-related nodes and relationships from the logs.
 def store_file(file_path, cur, connect):
-    file_node = set()  # Set of unique file object UUIDs.
-
-    # First pass: Collect file UUIDs.
+    file_node = set()
     for file in tqdm(filelist):
         with open(file_path + file, "r") as f:
             for line in f:
@@ -138,16 +119,15 @@ def store_file(file_path, cur, connect):
                     try:
                         file_node.add(Object_uuid[0])
                     except:
-                        print(line)  # Log lines that fail to parse.
+                        print(line)
 
-    # Second pass: Map UUIDs to file paths.
     file_obj2hash = {}
     for file in tqdm(filelist):
         with open(file_path + file, "r") as f:
             for line in f:
                 if '{"datum":{"com.bbn.tc.schema.avro.cdm18.Event"' in line:
                     predicateObject_uuid = re.findall(
-                        '"predicateObject":{"com.bbn.tc.schema.avro.cdm18.UUID":"(.*?)"',
+                        '"predicateObject":{"com.bbn.tc.schema.avro.cdm18.UUID":"(.*?)"}',
                         line,
                     )
                     if len(predicateObject_uuid) > 0:
@@ -161,15 +141,12 @@ def store_file(file_path, cur, connect):
                                 )
                                 file_obj2hash[predicateObject_uuid[0]] = path_name
 
-    # Prepare data for database insertion.
     datalist = []
     for i in file_obj2hash.keys():
-        if len(i) != 64:  # Ensure valid UUID length.
+        if len(i) != 64:
             datalist.append(
                 [i] + [stringtomd5(file_obj2hash[i][0]), file_obj2hash[i][0]]
             )
-
-    # Insert data into the database.
     sql = """insert into file_node_table
                          values %s
             """
@@ -177,11 +154,10 @@ def store_file(file_path, cur, connect):
     connect.commit()
 
 
-# Combines all nodes into a single list and stores them in the database.
 def create_node_list(cur, connect):
-    node_list = {}  # Dictionary to store node information.
+    node_list = {}
 
-    # Fetch file nodes from the database.
+    # file
     sql = """
     select * from file_node_table;
     """
@@ -194,7 +170,7 @@ def create_node_list(cur, connect):
     for i in records:
         file_uuid2hash[i[0]] = i[1]
 
-    # Fetch subject nodes from the database.
+    # subject
     sql = """
     select * from subject_node_table;
     """
@@ -206,7 +182,7 @@ def create_node_list(cur, connect):
     for i in records:
         subject_uuid2hash[i[0]] = i[1]
 
-    # Fetch netflow nodes from the database.
+    # netflow
     sql = """
     select * from netflow_node_table;
     """
@@ -219,7 +195,6 @@ def create_node_list(cur, connect):
     for i in records:
         net_uuid2hash[i[0]] = i[1]
 
-    # Assign an index to each node and prepare for insertion.
     node_list_database = []
     node_index = 0
     for i in node_list:
@@ -232,7 +207,6 @@ def create_node_list(cur, connect):
     ex.execute_values(cur, sql, node_list_database, page_size=10000)
     connect.commit()
 
-    # Retrieve all nodes and create a mapping of node IDs to properties.
     sql = "select * from node2id ORDER BY index_id;"
     cur.execute(sql)
     rows = cur.fetchall()
@@ -244,7 +218,6 @@ def create_node_list(cur, connect):
     return nodeid2msg, subject_uuid2hash, file_uuid2hash, net_uuid2hash
 
 
-# Parses event relationships between nodes and stores them in the database.
 def store_event(
     file_path,
     cur,
@@ -256,16 +229,13 @@ def store_event(
     net_uuid2hash,
 ):
     datalist = []
-    # Iterate over all files in the file list.
     for file in tqdm(filelist):
         with open(file_path + file, "r") as f:
             for line in f:
-                # Identify lines containing event data excluding "EVENT_FLOWS_TO" events.
                 if (
                     '{"datum":{"com.bbn.tc.schema.avro.cdm18.Event"' in line
                     and "EVENT_FLOWS_TO" not in line
                 ):
-                    # Extract UUIDs for the subject and predicate object.
                     subject_uuid = re.findall(
                         '"subject":{"com.bbn.tc.schema.avro.cdm18.UUID":"(.*?)"}', line
                     )
@@ -273,26 +243,19 @@ def store_event(
                         '"predicateObject":{"com.bbn.tc.schema.avro.cdm18.UUID":"(.*?)"}',
                         line,
                     )
-
-                    # Validate that both UUIDs exist and are relevant.
                     if len(subject_uuid) > 0 and len(predicateObject_uuid) > 0:
                         if subject_uuid[0] in subject_uuid2hash and (
                             predicateObject_uuid[0] in file_uuid2hash
                             or predicateObject_uuid[0] in net_uuid2hash
                         ):
-                            # Extract event type and timestamp.
                             relation_type = re.findall('"type":"(.*?)"', line)[0]
                             time_rec = re.findall('"timestampNanos":(.*?),', line)[0]
                             time_rec = int(time_rec)
-
-                            # Map UUIDs to their corresponding node IDs.
                             subjectId = subject_uuid2hash[subject_uuid[0]]
                             if predicateObject_uuid[0] in file_uuid2hash:
                                 objectId = file_uuid2hash[predicateObject_uuid[0]]
                             else:
                                 objectId = net_uuid2hash[predicateObject_uuid[0]]
-
-                            # Reverse the relationship if specified in the reverse mapping.
                             if relation_type in reverse:
                                 datalist.append(
                                     [
@@ -316,7 +279,6 @@ def store_event(
                                     ]
                                 )
 
-    # Insert the accumulated event data into the database.
     sql = """insert into event_table
                          values %s
             """
