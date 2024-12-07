@@ -1,0 +1,10 @@
+// the test
+digraph MyPicture {
+	graph [rankdir=LR]
+	3605788436517422484 [label="{'subject': 'ntpd'}7" color=blue shape=box]
+	478710794660407384 [label="{'file': '/var/db/ntpd.drift.TEMP'}7" color=blue shape=oval]
+	3605788436517422484 -> 478710794660407384 [label=EVENT_WRITE color=blue]
+	3605788436517422484 [label="{'subject': 'ntpd'}7" color=blue shape=box]
+	8220589357711565755 [label="{'netflow': '10.0.4.1:123'}7" color=blue shape=diamond]
+	3605788436517422484 -> 8220589357711565755 [label=EVENT_SENDTO color=blue]
+}

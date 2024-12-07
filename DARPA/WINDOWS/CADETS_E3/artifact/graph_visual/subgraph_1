@@ -1,0 +1,7 @@
+// the test
+digraph MyPicture {
+	graph [rankdir=LR]
+	5394640976686908354 [label="{'subject': 'ifconfig'}1" color=blue shape=box]
+	5683459492189372215 [label="{'file': '/sbin/ifconfig'}1" color=blue shape=oval]
+	5394640976686908354 -> 5683459492189372215 [label=EVENT_EXECUTE color=blue]
+}
