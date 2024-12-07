@@ -4,73 +4,96 @@
 ##########################################################################################
 
 import logging
-
 from kairos_utils import *
 from config import *
 from model import *
 
-# Setting for logging
+# Setting up logging to track progress and results
 logger = logging.getLogger("reconstruction_logger")
 logger.setLevel(logging.INFO)
-file_handler = logging.FileHandler(artifact_dir + 'reconstruction.log')
+file_handler = logging.FileHandler(artifact_dir + "reconstruction.log")
 file_handler.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+formatter = logging.Formatter(
+    "%(asctime)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
+)
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
 
-@torch.no_grad()
-def test(inference_data,
-          memory,
-          gnn,
-          link_pred,
-          neighbor_loader,
-          nodeid2msg,
-          path
-          ):
-    if os.path.exists(path):
-        pass
-    else:
+# Function to test the model by reconstructing edges in the inference dataset
+@torch.no_grad()  # Disables gradient computation for inference
+def test(inference_data, memory, gnn, link_pred, neighbor_loader, nodeid2msg, path):
+    """
+    Perform edge reconstruction and loss computation for inference data.
+    Saves the ranked edges and their respective losses to disk.
+
+    Parameters:
+        inference_data: TemporalData object containing inference data.
+        memory: TGNMemory, memory module for temporal graph networks. (Gated Recurrent Unit [GRU] for State Update)
+        gnn: GraphAttentionEmbedding, graph neural network model. (Encoder)
+        link_pred: LinkPredictor, link prediction model. (Decoder)
+        neighbor_loader: LastNeighborLoader, loader for neighbor nodes. (Required for obtaining the state of neighbor nodes)
+        nodeid2msg: Mapping from node IDs to human-readable messages.
+        path: Directory to save the reconstruction results.
+
+    Returns:
+        Dictionary with time intervals and associated losses, node counts, and edge counts.
+    """
+
+    # Create output directory if it does not exist
+    if not os.path.exists(path):
         os.mkdir(path)
 
+    # Switch models to evaluation mode
     memory.eval()
     gnn.eval()
     link_pred.eval()
 
-    memory.reset_state()  # Start with a fresh memory.
-    neighbor_loader.reset_state()  # Start with an empty graph.
+    # Reset memory and neighbor loader states for inference
+    memory.reset_state()
+    neighbor_loader.reset_state()
 
-    time_with_loss = {}  # key: time，  value： the losses
-    total_loss = 0
-    edge_list = []
+    time_with_loss = {}  # Dictionary to store results for each time window
+    total_loss = 0  # Cumulative loss across events
+    edge_list = []  # List to store details of edges processed
 
-    unique_nodes = torch.tensor([]).to(device=device)
-    total_edges = 0
+    unique_nodes = torch.tensor([]).to(device=device)  # Track unique nodes
+    total_edges = 0  # Total edges processed
 
+    start_time = inference_data.t[0]  # Initial timestamp for time window
+    event_count = 0  # Counter for number of events in the current window
+    pos_o = []  # Store positive predictions
 
-    start_time = inference_data.t[0]
-    event_count = 0
-    pos_o = []
-
-    # Record the running time to evaluate the performance
+    # Record the start time for performance measurement
     start = time.perf_counter()
 
+    # Iterate through batches of inference data
     for batch in inference_data.seq_batches(batch_size=BATCH):
 
         src, pos_dst, t, msg = batch.src, batch.dst, batch.t, batch.msg
-        unique_nodes = torch.cat([unique_nodes, src, pos_dst]).unique()
+        unique_nodes = torch.cat(
+            [unique_nodes, src, pos_dst]
+        ).unique()  # Update unique nodes
         total_edges += BATCH
 
+        # Prepare node and edge information for neighbor loader
         n_id = torch.cat([src, pos_dst]).unique()
         n_id, edge_index, e_id = neighbor_loader(n_id)
-        assoc[n_id] = torch.arange(n_id.size(0), device=device)
+        assoc[n_id] = torch.arange(
+            n_id.size(0), device=device
+        )  # Associate node IDs with their indices
 
+        # Retrieve and update memory embeddings for nodes
         z, last_update = memory(n_id)
-        z = gnn(z, last_update, edge_index, inference_data.t[e_id], inference_data.msg[e_id])
+        z = gnn(
+            z, last_update, edge_index, inference_data.t[e_id], inference_data.msg[e_id]
+        )
 
+        # Compute positive edge scores
         pos_out = link_pred(z[assoc[src]], z[assoc[pos_dst]])
-
         pos_o.append(pos_out)
+
+        # Compute true labels from messages
         y_pred = torch.cat([pos_out], dim=0)
         y_true = []
         for m in msg:
@@ -79,16 +102,18 @@ def test(inference_data,
         y_true = torch.tensor(y_true).to(device=device)
         y_true = y_true.reshape(-1).to(torch.long).to(device=device)
 
+        # Compute loss for the current batch
         loss = criterion(y_pred, y_true)
         total_loss += float(loss) * batch.num_events
 
-        # update the edges in the batch to the memory and neighbor_loader
+        # Update memory and neighbor loader with current edges
         memory.update_state(src, pos_dst, t, msg)
         neighbor_loader.insert(src, pos_dst)
 
-        # compute the loss for each edge
+        # Compute per-edge losses
         each_edge_loss = cal_pos_edges_loss_multiclass(pos_out, y_true)
 
+        # Log details for each edge
         for i in range(len(pos_out)):
             srcnode = int(src[i])
             dstnode = int(pos_dst[i])
@@ -100,38 +125,46 @@ def test(inference_data,
             edge_type = rel2id[edgeindex]
             loss = each_edge_loss[i]
 
-            temp_dic = {}
-            temp_dic['loss'] = float(loss)
-            temp_dic['srcnode'] = srcnode
-            temp_dic['dstnode'] = dstnode
-            temp_dic['srcmsg'] = srcmsg
-            temp_dic['dstmsg'] = dstmsg
-            temp_dic['edge_type'] = edge_type
-            temp_dic['time'] = t_var
+            temp_dic = {
+                "loss": float(loss),
+                "srcnode": srcnode,
+                "dstnode": dstnode,
+                "srcmsg": srcmsg,
+                "dstmsg": dstmsg,
+                "edge_type": edge_type,
+                "time": t_var,
+            }
 
             edge_list.append(temp_dic)
 
+        # Checkpoint results at the end of each time window
         event_count += len(batch.src)
         if t[-1] > start_time + time_window_size:
-            # Here is a checkpoint, which records all edge losses in the current time window
-            time_interval = ns_time_to_datetime_US(start_time) + "~" + ns_time_to_datetime_US(t[-1])
+            time_interval = (
+                ns_time_to_datetime_US(start_time) + "~" + ns_time_to_datetime_US(t[-1])
+            )
 
             end = time.perf_counter()
-            time_with_loss[time_interval] = {'loss': loss,
+            time_with_loss[time_interval] = {
+                "loss": loss,
+                "nodes_count": len(unique_nodes),
+                "total_edges": total_edges,
+                "costed_time": (end - start),
+            }
 
-                                             'nodes_count': len(unique_nodes),
-                                             'total_edges': total_edges,
-                                             'costed_time': (end - start)}
+            log = open(path + "/" + time_interval + ".txt", "w")
 
-            log = open(path + "/" + time_interval + ".txt", 'w')
-
+            # Average loss over events
             for e in edge_list:
-                loss += e['loss']
-
+                loss += e["loss"]
             loss = loss / event_count
+
             logger.info(
-                f'Time: {time_interval}, Loss: {loss:.4f}, Nodes_count: {len(unique_nodes)}, Edges_count: {event_count}, Cost Time: {(end - start):.2f}s')
-            edge_list = sorted(edge_list, key=lambda x: x['loss'], reverse=True)  # Rank the results based on edge losses
+                f"Time: {time_interval}, Loss: {loss:.4f}, Nodes_count: {len(unique_nodes)}, Edges_count: {event_count}, Cost Time: {(end - start):.2f}s"
+            )
+
+            # Rank edges by loss and save to file
+            edge_list = sorted(edge_list, key=lambda x: x["loss"], reverse=True)
             for e in edge_list:
                 log.write(str(e))
                 log.write("\n")
@@ -143,69 +176,55 @@ def test(inference_data,
 
     return time_with_loss
 
-def load_data():
-    # graph_4_3 - graph_4_5 will be used to initialize node IDF scores.
-    graph_4_3 = torch.load(graphs_dir + "/graph_4_3.TemporalData.simple").to(device=device)
-    graph_4_4 = torch.load(graphs_dir + "/graph_4_4.TemporalData.simple").to(device=device)
-    graph_4_5 = torch.load(graphs_dir + "/graph_4_5.TemporalData.simple").to(device=device)
 
-    # Testing set
-    graph_4_6 = torch.load(graphs_dir + "/graph_4_6.TemporalData.simple").to(device=device)
-    graph_4_7 = torch.load(graphs_dir + "/graph_4_7.TemporalData.simple").to(device=device)
+# Function to load graph data for inference
+def load_data():
+    """Load the datasets for initialization and testing."""
+    graph_4_3 = torch.load(graphs_dir + "/graph_4_3.TemporalData.simple").to(
+        device=device
+    )
+    graph_4_4 = torch.load(graphs_dir + "/graph_4_4.TemporalData.simple").to(
+        device=device
+    )
+    graph_4_5 = torch.load(graphs_dir + "/graph_4_5.TemporalData.simple").to(
+        device=device
+    )
+    graph_4_6 = torch.load(graphs_dir + "/graph_4_6.TemporalData.simple").to(
+        device=device
+    )
+    graph_4_7 = torch.load(graphs_dir + "/graph_4_7.TemporalData.simple").to(
+        device=device
+    )
 
     return [graph_4_3, graph_4_4, graph_4_5, graph_4_6, graph_4_7]
 
 
+# Main execution starts here
 if __name__ == "__main__":
     logger.info("Start logging.")
 
-    # load the map between nodeID and node labels
+    # Load node ID to message mapping
     cur, _ = init_database_connection()
     nodeid2msg = gen_nodeid2msg(cur=cur)
 
-    # Load data
+    # Load data for inference
     graph_4_3, graph_4_4, graph_4_5, graph_4_6, graph_4_7 = load_data()
 
-    # load trained model
-    memory, gnn, link_pred, neighbor_loader = torch.load(f"{models_dir}/models.pt",map_location=device)
+    # Load pre-trained model components
+    memory, gnn, link_pred, neighbor_loader = torch.load(
+        f"{models_dir}/models.pt", map_location=device
+    )
 
-    # Reconstruct the edges in each day
-    test(inference_data=graph_4_3,
-         memory=memory,
-         gnn=gnn,
-         link_pred=link_pred,
-         neighbor_loader=neighbor_loader,
-         nodeid2msg=nodeid2msg,
-         path=artifact_dir + "graph_4_3")
-
-    test(inference_data=graph_4_4,
-         memory=memory,
-         gnn=gnn,
-         link_pred=link_pred,
-         neighbor_loader=neighbor_loader,
-         nodeid2msg=nodeid2msg,
-         path=artifact_dir + "graph_4_4")
-
-    test(inference_data=graph_4_5,
-         memory=memory,
-         gnn=gnn,
-         link_pred=link_pred,
-         neighbor_loader=neighbor_loader,
-         nodeid2msg=nodeid2msg,
-         path=artifact_dir + "graph_4_5")
-
-    test(inference_data=graph_4_6,
-         memory=memory,
-         gnn=gnn,
-         link_pred=link_pred,
-         neighbor_loader=neighbor_loader,
-         nodeid2msg=nodeid2msg,
-         path=artifact_dir + "graph_4_6")
-
-    test(inference_data=graph_4_7,
-         memory=memory,
-         gnn=gnn,
-         link_pred=link_pred,
-         neighbor_loader=neighbor_loader,
-         nodeid2msg=nodeid2msg,
-         path=artifact_dir + "graph_4_7")
+    # Perform edge reconstruction for each graph
+    for i, graph in enumerate(
+        [graph_4_3, graph_4_4, graph_4_5, graph_4_6, graph_4_7], start=3
+    ):
+        test(
+            inference_data=graph,
+            memory=memory,
+            gnn=gnn,
+            link_pred=link_pred,
+            neighbor_loader=neighbor_loader,
+            nodeid2msg=nodeid2msg,
+            path=artifact_dir + f"graph_4_{i}",
+        )
