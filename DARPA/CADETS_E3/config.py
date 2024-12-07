@@ -5,7 +5,7 @@
 ########################################################
 
 # The directory of the raw logs
-raw_dir = "/the/absolute/path/of/cadets_e3/"
+raw_dir = "D:/EDUCATION/TERM_1/COMP7860_CYBERSECURITY/kairos-main/datasets/cadetsE3/"
 
 # The directory to save all artifacts
 artifact_dir = "./artifact/"
@@ -23,7 +23,6 @@ test_re = artifact_dir + "test_re/"
 vis_re = artifact_dir + "vis_re/"
 
 
-
 ########################################################
 #
 #               Database settings
@@ -31,22 +30,22 @@ vis_re = artifact_dir + "vis_re/"
 ########################################################
 
 # Database name
-database = 'tc_cadet_dataset_db'
+database = "tc_cadet_dataset_db"
 
 # Only config this setting when you have the problem mentioned
 # in the Troubleshooting section in settings/environment-settings.md.
 # Otherwise, set it as None
-host = '/var/run/postgresql/'
+host = "localhost"
 # host = None
 
 # Database user
-user = 'postgres'
+user = "postgres"
 
 # The password to the database user
-password = 'postgres'
+password = "test1234"
 
 # The port number for Postgres
-port = '5432'
+port = "5432"
 
 
 ########################################################
@@ -56,15 +55,11 @@ port = '5432'
 ########################################################
 
 # The directions of the following edge types need to be reversed
-edge_reversed = [
-    "EVENT_ACCEPT",
-    "EVENT_RECVFROM",
-    "EVENT_RECVMSG"
-]
+edge_reversed = ["EVENT_ACCEPT", "EVENT_RECVFROM", "EVENT_RECVMSG"]
 
 # The following edges are the types only considered to construct the
 # temporal graph for experiments.
-include_edge_type=[
+include_edge_type = [
     "EVENT_WRITE",
     "EVENT_READ",
     "EVENT_CLOSE",
@@ -76,20 +71,20 @@ include_edge_type=[
 
 # The map between edge type and edge ID
 rel2id = {
- 1: 'EVENT_WRITE',
- 'EVENT_WRITE': 1,
- 2: 'EVENT_READ',
- 'EVENT_READ': 2,
- 3: 'EVENT_CLOSE',
- 'EVENT_CLOSE': 3,
- 4: 'EVENT_OPEN',
- 'EVENT_OPEN': 4,
- 5: 'EVENT_EXECUTE',
- 'EVENT_EXECUTE': 5,
- 6: 'EVENT_SENDTO',
- 'EVENT_SENDTO': 6,
- 7: 'EVENT_RECVFROM',
- 'EVENT_RECVFROM': 7
+    1: "EVENT_WRITE",
+    "EVENT_WRITE": 1,
+    2: "EVENT_READ",
+    "EVENT_READ": 2,
+    3: "EVENT_CLOSE",
+    "EVENT_CLOSE": 3,
+    4: "EVENT_OPEN",
+    "EVENT_OPEN": 4,
+    5: "EVENT_EXECUTE",
+    "EVENT_EXECUTE": 5,
+    6: "EVENT_SENDTO",
+    "EVENT_SENDTO": 6,
+    7: "EVENT_RECVFROM",
+    "EVENT_RECVFROM": 7,
 }
 
 ########################################################
@@ -124,11 +119,11 @@ time_dim = 100
 BATCH = 1024
 
 # Parameters for optimizer
-lr=0.00005
-eps=1e-08
-weight_decay=0.01
+lr = 0.00005
+eps = 1e-08
+weight_decay = 0.01
 
-epoch_num=50
+epoch_num = 50
 
 # The size of time window, 60000000000 represent 1 min in nanoseconds.
 # The default setting is 15 minutes.
