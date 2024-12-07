@@ -31,7 +31,11 @@ pip install torch_geometric==2.0.0
 pip install pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv -f https://data.pyg.org/whl/torch-1.13.0+cu117.html
 
 ```
-
+# Activate command for Windows
+```
+python -m venv venv
+source venv/bin/activate   # On Windows: venv\Scripts\activate
+```
 ## Troubleshooting
 
 **Issue**: When running `psycopg2.connect()`, I received this error:
