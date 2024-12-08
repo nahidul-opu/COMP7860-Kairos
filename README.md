@@ -15,10 +15,14 @@ KAIROS is a system designed to enhance intrusion detection and facilitate compre
 
 ## Getting Started
 
+
 ### Prerequisites
 
-- Python 3.6 or higher
-- Required Python packages listed in `DARPA/settings/`
+- Anaconda
+- Python 3.9
+- PostgreSQL
+- GraphViz
+- CUDA
 
 ### Installation
 
@@ -28,46 +32,103 @@ KAIROS is a system designed to enhance intrusion detection and facilitate compre
    cd COMP7860-Kairos
    ```
 
-2. **Set Up Virtual Environment**:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate   # On Windows: venv\Scripts\activate
-   ```
+2. **Virtual Environment Set Up**:
 
-3. **Install Dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-You may need to manually install PyTorch based on your workstation configuraion.
+   Follow the Python runtime environment setup instructions written in [Anaconda Python Environment](DARPA/settings/environment-settings.md)
+3. **Database Set Up**:
 
-# Author's Note:
+   The preprocessing steps involve storing the parsed logs into a database for each dataset. To work with a specific dataset, you need to create a schema specific for that dataset. Instructions for creating the database is located in [PostgreSQL Database](DARPA/settings/database.md)
 
 
-This repository contains the implementation of the approach proposed 
-in the paper 
-"_KAIROS: Practical Intrusion Detection and Investigation using Whole-system Provenance_".
+## Module Overview
+Kairos builds a separate model for each dataset, with each dataset requiring specific preprocessing, training, and testing phases. This project contains of the following top level modules:
 
-Please cite this paper if you use the model or any code
-from this repository in your own work:
-```
-@inproceedings{cheng2024kairos,
-  title={KAIROS: Practical Intrusion Detection and Investigation using Whole-system Provenance},
-  author={Cheng, Zijun and Lv, Qiujian and Liang, Jinyuan and Wang, Yang and Sun, Degang and Pasquier, Thomas and Han, Xueyuan},
-  booktitle={2024 IEEE Symposium on Security and Privacy (SP)},
-  year={2024},
-  organization={IEEE}
-}
-```
 
-We provide a [demo](DARPA/README.md)
-to illustrate step-by-step
-how you can run the code end-to-end.
-Additionally, we provide IPython notebook
-scripts for all of our experiments.
-> Due to the extended amount of time it takes to
-> train a model, we also provide pre-trained models
-> of our experimental datasets.
-> You can download these models directly from our [Google Drive](https://drive.google.com/drive/u/0/folders/1YAKoO3G32xlYrCs4BuATt1h_hBvvEB6C).
 
-Our paper and [the supplementary material](supplementary-material.pdf)
-contain links to all publicly available datasets used in our experiments.
+[//]: # (- **Unix Environment**)
+- **[DARPA TC CADETS Engagement 3](DARPA/CADETS_E3)**
+  - **Code Execution Steps**
+    - [Download](https://drive.google.com/drive/u/0/folders/179uDuz62Aw61Ehft6MoJCpPeBEz16VFy) dataset and extract files.
+    - Update dataset directory in [config.py](DARPA/CADETS_E3/config.py).
+    - Create DB schema and run DML as instructed for DARPA CADETS E3 in [database.md](DARPA/settings/database.md)
+    - Update PostgreSQL Path/URL and port in [config.py](DARPA/CADETS_E3/config.py)  if it is different from default.
+    - Execute [Makefile](DARPA/CADETS_E3/Makefile)
+- [DARPA TC CADETS  Engagement 5](DARPA/CADETS_E5)
+  - **Code Execution Steps**
+     - [Download](https://drive.google.com/drive/u/0/folders/1YOaC0SMGjBnrT9952EwmKKngQkBYf4hY) dataset files.
+     - Decompress CMD files with [ta3-java-consumer](https://github.com/darpa-i2o/Transparent-Computing/blob/master/README-E3.md)
+     - Update dataset directory in [cadets5_datapreprocess.ipynb](DARPA/CADETS_E5/cadets5_datapreprocess.ipynb)
+     - Create DB schema and run DML as instructed for CADETS E5 in [cadets5_datapreprocess.ipynb](DARPA/CADETS_E5/cadets5_datapreprocess.ipynb)
+     - Update PostgreSQL Path/URL and port in [cadets5_datapreprocess.ipynb](DARPA/CADETS_E5/cadets5_datapreprocess.ipynb)  if it is different from default.
+     - Run preprocessing file [cadets5_datapreprocess.ipynb](DARPA/CADETS_E5/cadets5_datapreprocess.ipynb)
+     - Run training and evaluation file [cadets5_graph_learning.ipynb](DARPA/CADETS_E5/cadets5_graph_learning.ipynb)
+- [DARPA TC CLEARSCOPE  Engagement 3](DARPA/CLEARSCOPE_E3)
+    - **Code Execution Steps**
+      - [Download](https://drive.google.com/drive/u/0/folders/1cbOHa5_dlu0XF8od5YKKqCGOawHzqaT_) dataset files.
+      - Update dataset directory in [clearscope3_datapreprocess.ipynb](DARPA/CLEARSCOPE_E3/clearscope3_datapreprocess.ipynb)
+      - Create DB schema and run DML as instructed for CLEARSCOPE E3 in [database.md](DARPA/settings/database.md)
+      - Update PostgreSQL Path/URL and port in  [clearscope3_datapreprocess.ipynb](DARPA/CLEARSCOPE_E3/clearscope3_datapreprocess.ipynb) if it is different from default.
+      - Run preprocessing file [clearscope3_datapreprocess.ipynb](DARPA/CLEARSCOPE_E3/clearscope3_datapreprocess.ipynb)
+      - Run training and evaluation file [clearscope3_graph_learning.ipynb](DARPA/CLEARSCOPE_E3/clearscope3_graph_learning.ipynb)
+- [DARPA TC CLEARSCOPE  Engagement 5](DARPA/CLEARSCOPE_E5)
+  - **Code Execution Steps**
+    - [Download](https://drive.google.com/drive/u/0/folders/1S-LrRdu1tCjUMQA_VdKj_OXWs4BA7Hk_) dataset files.
+    - Decompress CMD files with [ta3-java-consumer](https://github.com/darpa-i2o/Transparent-Computing/blob/master/README-E3.md)
+    - Update dataset directory in [clearscope5_datapreprocess.ipynb](DARPA/CLEARSCOPE_E5/clearscope5_datapreprocess.ipynb)
+    - Create DB schema and run DML as instructed for CLEARSCOPE E5 in [database.md](DARPA/settings/database.md)
+    - Update PostgreSQL Path/URL and port in  [clearscope5_datapreprocess.ipynb](DARPA/CLEARSCOPE_E5/clearscope5_datapreprocess.ipynb) if it is different from default.
+    - Run preprocessing file [clearscope5_datapreprocess.ipynb](DARPA/CLEARSCOPE_E5/clearscope5_datapreprocess.ipynb)
+    - Run training and evaluation file [clearscope5_graph_learning.ipynb](DARPA/CLEARSCOPE_E5/clearscope5_graph_learning.ipynb)
+- [DARPA TC OpTC](DARPA/OpTC)
+  - **Code Execution Steps**
+    - [Download](https://drive.google.com/drive/u/0/folders/1n3kkS3KR31KUegn42yk3-e6JkZvf0Caa) from google drive. Make sure you have at least 4TB storage.
+    - Update dataset directory in [optc_datapreprocess.ipynb](DARPA/OpTC/optc_datapreprocess.ipynb)
+    - Create DB schema and run DML as instructed for DARPA OpTC in [database.md](DARPA/settings/database.md)
+    - Update PostgreSQL Path/URL and port in [optc_datapreprocess.ipynb](DARPA/OpTC/optc_datapreprocess.ipynb)  if it is different from default.
+    - Run preprocessing file [optc_datapreprocess.ipynb](DARPA/OpTC/optc_datapreprocess.ipynb)
+    - Run training and evaluation file [optc_graph_learning.ipynb](DARPA/OpTC/optc_graph_learning.ipynb)
+- [DARPA TC THEIA  Engagement 3](DARPA/THEIA_E3)
+  - **Code Execution Steps**
+    - [Download](https://drive.google.com/drive/u/0/folders/1AWXy7GFGJWeJPGzvkT935kTfwBYzjhfC) dataset files.
+    - Update dataset directory in [theia3_datapreprocess.ipynb](DARPA/THEIA_E3/theia3_datapreprocess.ipynb)
+    - Create DB schema and run DML as instructed for THEIA E3 in [database.md](DARPA/settings/database.md)
+    - Update PostgreSQL Path/URL and port in [theia3_datapreprocess.ipynb](DARPA/THEIA_E3/theia3_datapreprocess.ipynb)  if it is different from default.
+    - Run preprocessing file [theia3_datapreprocess.ipynb](DARPA/THEIA_E3/theia3_datapreprocess.ipynb)
+    - Run training and evaluation file [theia3_graph_learning.ipynb](DARPA/THEIA_E3/theia3_graph_learning.ipynb)
+- [DARPA TC THEIA  Engagement 5](DARPA/THEIA_E5)
+  - **Code Execution Steps**
+     - [Download](https://drive.google.com/drive/u/0/folders/13zdJvC62zsJc2nD7KWxtN9xkk05LdQGw) dataset files.
+     - Decompress CMD files with [ta3-java-consumer](https://github.com/darpa-i2o/Transparent-Computing/blob/master/README-E3.md)
+     - Update dataset directory in [theia5_datapreprocess.ipynb](DARPA/THEIA_E5/theia5_datapreprocess.ipynb)
+     - Create DB schema and run DML as instructed for THEIA E5 in [theia5_datapreprocess.ipynb](DARPA/THEIA_E5/theia5_datapreprocess.ipynb)
+     - Update PostgreSQL Path/URL and port in [theia5_datapreprocess.ipynb](DARPA/THEIA_E5/theia5_datapreprocess.ipynb)  if it is different from default.
+     - Run preprocessing file [theia5_datapreprocess.ipynb](DARPA/THEIA_E5/theia5_datapreprocess.ipynb)
+     - Run training and evaluation file [theia5_graph_learning.ipynb](DARPA/THEIA_E5/theia5_graph_learning.ipynb)
+- **[Stream Spot](StreamSpot)**
+  - **Code Execution Steps**
+      - [Download](https://github.com/sbustreamspot/sbustreamspot-data/blob/master/all.tar.gz) dataset and extract file.
+      - Update TSV Dataset File Location in [preprocess.py](StreamSpot/src/preprocess.py)
+      - Create DB schema and run DML as instructed in [StreamSpotReadMe.md](StreamSpot/src/README.md)
+      - Update PostgreSQL Path/URL and port in [preprocess.py](StreamSpot/src/preprocess.py) if it is different from default.
+      - Run python scripts as instructed in [StreamSpotReadMe.md](StreamSpot/src/README.md)
+
+[//]: # (- **Windows Environment**)
+
+[//]: # (  - [CADETS  Engagement 3]&#40;DARPA/WINDOWS/CADETS_E3&#41;)
+
+[//]: # (  - [CADETS  Engagement 5]&#40;DARPA/WINDOWS/CADETS_E5&#41;)
+
+[//]: # (  - [CLEARSCOPE  Engagement 5]&#40;DARPA/WINDOWS/CLEARSCOPE_E5&#41;)
+
+# Dataset Download
+- [Download DARPA TC CADETS Engagement 3](https://drive.google.com/drive/u/0/folders/179uDuz62Aw61Ehft6MoJCpPeBEz16VFy)
+- [Download DARPA TC CADETS  Engagement 5](https://drive.google.com/drive/u/0/folders/1YOaC0SMGjBnrT9952EwmKKngQkBYf4hY)
+- [Download DARPA TC CLEARSCOPE  Engagement 3](https://drive.google.com/drive/u/0/folders/1cbOHa5_dlu0XF8od5YKKqCGOawHzqaT_)
+- [Download DARPA TC CLEARSCOPE  Engagement 5](https://drive.google.com/drive/u/0/folders/1S-LrRdu1tCjUMQA_VdKj_OXWs4BA7Hk_)
+- [Download DARPA TC OpTC](https://drive.google.com/drive/u/0/folders/1n3kkS3KR31KUegn42yk3-e6JkZvf0Caa)
+- [Download DARPA TC THEIA  Engagement 3](https://drive.google.com/drive/u/0/folders/1AWXy7GFGJWeJPGzvkT935kTfwBYzjhfC)
+- [Download DARPA TC THEIA  Engagement 5](https://drive.google.com/drive/u/0/folders/13zdJvC62zsJc2nD7KWxtN9xkk05LdQGw)
+- [Download Stream Spot](https://github.com/sbustreamspot/sbustreamspot-data/blob/master/all.tar.gz)
+
+# Models
+Pretrained models shared by the original authors can be downloaded from [Google Drive](https://drive.google.com/drive/u/0/folders/1YAKoO3G32xlYrCs4BuATt1h_hBvvEB6C)
