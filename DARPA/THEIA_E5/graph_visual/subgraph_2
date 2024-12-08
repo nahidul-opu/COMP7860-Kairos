@@ -1,0 +1,7 @@
+// the test
+digraph MyPicture {
+	graph [rankdir=LR]
+	6170498176415495179 [label="{'subject': '/usr/lib/thunderbird/thunderbird'}2" color=blue shape=box]
+	11417643714455638918 [label="{'file': '/home/admin/.thunderbird/0m84yn3u.default/datareporting/aborted-session-ping.tmp'}2" color=blue shape=oval]
+	6170498176415495179 -> 11417643714455638918 [label=EVENT_WRITE color=blue]
+}

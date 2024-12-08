@@ -1,0 +1,16 @@
+// the test
+digraph MyPicture {
+	graph [rankdir=LR]
+	835560870475869052 [label="{'subject': '/usr/bin/xfrun4'}5" color=blue shape=box]
+	12184788873318627532 [label="{'file': '/home/admin/.cache/thunderbird/0m84yn3u.default/Cache/_CACHE_MAP_'}5" color=blue shape=oval]
+	835560870475869052 -> 12184788873318627532 [label=EVENT_WRITE color=blue]
+	835560870475869052 [label="{'subject': '/usr/bin/xfrun4'}5" color=blue shape=box]
+	14080439463623649749 [label="{'file': '/home/admin/.cache/thunderbird/0m84yn3u.default/_CACHE_CLEAN_'}5" color=blue shape=oval]
+	835560870475869052 -> 14080439463623649749 [label=EVENT_WRITE color=blue]
+	835560870475869052 [label="{'subject': '/usr/bin/xfrun4'}5" color=blue shape=box]
+	10982186112250315788 [label="{'file': '/home/admin/.thunderbird/0m84yn3u.default/cert8.db'}5" color=blue shape=oval]
+	835560870475869052 -> 10982186112250315788 [label=EVENT_WRITE color=blue]
+	835560870475869052 [label="{'subject': '/usr/bin/xfrun4'}5" color=blue shape=box]
+	14717743796938214263 [label="{'file': '/home/admin/.thunderbird/0m84yn3u.default/key3.db'}5" color=blue shape=oval]
+	835560870475869052 -> 14717743796938214263 [label=EVENT_WRITE color=blue]
+}

@@ -1,0 +1,7 @@
+// the test
+digraph MyPicture {
+	graph [rankdir=LR]
+	7844970377543418865 [label="{'subject': '/bin/dbus-daemon'}4" color=blue shape=box]
+	13470412996549553751 [label="{'file': '/home/admin/.gconf/apps/gnome-terminal/profiles/Default/%gconf.xml.new'}4" color=blue shape=oval]
+	7844970377543418865 -> 13470412996549553751 [label=EVENT_WRITE color=blue]
+}

@@ -1,0 +1,13 @@
+// the test
+digraph MyPicture {
+	graph [rankdir=LR]
+	16214097955797308735 [label="{'subject': '/usr/local/lib/firefox-54.0.1/firefox'}1" color=red shape=box]
+	12925822504862203780 [label="/home/admin/.mozilla/firefox*3" color=blue shape=oval]
+	16214097955797308735 -> 12925822504862203780 [label=EVENT_WRITE color=blue]
+	12925822504862203780 [label="/home/admin/.mozilla/firefox*3" color=blue shape=oval]
+	16214097955797308735 [label="{'subject': '/usr/local/lib/firefox-54.0.1/firefox'}1" color=red shape=box]
+	12925822504862203780 -> 16214097955797308735 [label=EVENT_READ color=blue]
+	2536232315288787863 [label="{'subject': '/bin/bash'}3" color=blue shape=box]
+	12925822504862203780 [label="/home/admin/.mozilla/firefox*3" color=blue shape=oval]
+	2536232315288787863 -> 12925822504862203780 [label=EVENT_WRITE color=blue]
+}
