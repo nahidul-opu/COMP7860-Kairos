@@ -24,34 +24,41 @@ import math
 import copy
 import re
 import time
-
+# Choosing CUDA to run the code if available in the host machine
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-device = 'cpu'
+#device = 'cpu'
 # msg structure:      [src_node_feature,edge_attr,dst_node_feature]
-train_data = torch.load("../data/graph_0.TemporalData")
+# Load the first graph as initial training dataset then load others
+train_data = torch.load("/home/shahidul2k9/data/streamspot/graph/graph_0.TemporalData")
 
+# maximum number of nodes present over all training dataset
 max_node_num = 5045000
 min_dst_idx, max_dst_idx = 0, max_node_num
+# Use last neighbor load for loading neighbors of a node
 neighbor_loader = LastNeighborLoader(max_node_num, size=5, device=device)
 
-
+# Graph attention embedding layer setup
 class GraphAttentionEmbedding(torch.nn.Module):
     def __init__(self, in_channels, out_channels, msg_dim, time_enc):
         super(GraphAttentionEmbedding, self).__init__()
         self.time_enc = time_enc
         edge_dim = msg_dim + time_enc.out_channels
+        # Set transformer convolution as the filer of this layer
         self.conv = TransformerConv(in_channels, out_channels // 2, heads=2,
                                     dropout=0.1, edge_dim=edge_dim)
 
+    # Method will be called while passing input through this layer
     def forward(self, x, last_update, edge_index, t, msg):
         rel_t = last_update[edge_index[0]] - t
         rel_t_enc = self.time_enc(rel_t.to(x.dtype))
         edge_attr = torch.cat([rel_t_enc, msg], dim=-1)
+        # Apply the convolution operation
         return self.conv(x, edge_index, edge_attr)
-
+# Link/Edge predictor configuration
 class LinkPredictor(torch.nn.Module):
     def __init__(self, in_channels):
         super(LinkPredictor, self).__init__()
+        # Linear transformation for source and destination node embeddings
         self.lin_src = Linear(in_channels, in_channels)
         self.lin_dst = Linear(in_channels, in_channels)
         self.lin_final = Linear(in_channels, 1)
@@ -59,11 +66,12 @@ class LinkPredictor(torch.nn.Module):
     def forward(self, z_src, z_dst):
         h = self.lin_src(z_src) + self.lin_dst(z_dst)
         h = h.relu()
+        # Apply forward pass to predict the link score
         return self.lin_final(h)
 
-
+# Size of the memory dimension
 memory_dim = time_dim = embedding_dim = 200
-
+# Crate a memory layer
 memory = TGNMemory(
     max_node_num,
     train_data.msg.size(-1),
@@ -73,6 +81,7 @@ memory = TGNMemory(
     aggregator_module=LastAggregator(),
 ).to(device)
 
+# Create attention embedding layer
 gnn = GraphAttentionEmbedding(
     in_channels=memory_dim,
     out_channels=embedding_dim,
@@ -80,8 +89,10 @@ gnn = GraphAttentionEmbedding(
     time_enc=memory.time_enc,
 ).to(device)
 
+# Create link predictor
 link_pred = LinkPredictor(in_channels=embedding_dim).to(device)
 
+# Use Adam optimizer
 optimizer = torch.optim.Adam(
     set(memory.parameters()) | set(gnn.parameters())
     | set(link_pred.parameters()), lr=0.0001)
@@ -134,19 +145,20 @@ def test_new(inference_data):
     loss = total_loss / inference_data.num_events
     return float(torch.tensor(aps).mean()), float(
         torch.tensor(aucs).mean()), pos_out.sigmoid().cpu(), neg_out.sigmoid().cpu(), loss
-
-m = torch.load("model_saved.pt")
+# Load trained model
+m = torch.load("/home/shahidul2k9/data/streamspot/model/model_saved.pt")
+# Set model layers to evaluation mode
 memory, gnn, link_pred, neighbor_loader = m
 memory.eval()
 gnn.eval()
 link_pred.eval()
 
-if os.path.exists("val_ans_old.pt") is not True:
+if os.path.exists("/home/shahidul2k9/data/streamspot/model/val_ans_old.pt") is not True:
     graph_label = []
     all_loss = []
     start = time.time()
     for i in tqdm(range(1, 25)):
-        path = "../data/graph_" + str(i) + ".TemporalData"
+        path = "/home/shahidul2k9/data/streamspot/graph/graph_" + str(i) + ".TemporalData"
         test_graph = torch.load(path)
         test_ap, test_auc, pos_out_test, neg_out_test, loss_test = test_new(test_graph)
         print(f'Graph:{i}, Loss: {loss_test:.4f}')
@@ -154,7 +166,7 @@ if os.path.exists("val_ans_old.pt") is not True:
         graph_label.append(0)
 
     for i in tqdm(range(101, 125)):
-        path = "../data/graph_" + str(i) + ".TemporalData"
+        path = "/home/shahidul2k9/data/streamspot/graph/graph_" + str(i) + ".TemporalData"
         test_graph = torch.load(path)
         test_ap, test_auc, pos_out_test, neg_out_test, loss_test = test_new(test_graph)
         print(f'Graph:{i}, Loss: {loss_test:.4f}')
@@ -162,7 +174,7 @@ if os.path.exists("val_ans_old.pt") is not True:
         graph_label.append(0)
 
     for i in tqdm(range(201, 225)):
-        path = "../data/graph_" + str(i) + ".TemporalData"
+        path = "/home/shahidul2k9/data/streamspot/graph/graph_" + str(i) + ".TemporalData"
         test_graph = torch.load(path)
         test_ap, test_auc, pos_out_test, neg_out_test, loss_test = test_new(test_graph)
         print(f'Graph:{i}, Loss: {loss_test:.4f}')
@@ -170,7 +182,7 @@ if os.path.exists("val_ans_old.pt") is not True:
         graph_label.append(0)
 
     for i in tqdm(range(401, 425)):
-        path = "../data/graph_" + str(i) + ".TemporalData"
+        path = "/home/shahidul2k9/data/streamspot/graph/graph_" + str(i) + ".TemporalData"
         test_graph = torch.load(path)
         test_ap, test_auc, pos_out_test, neg_out_test, loss_test = test_new(test_graph)
         print(f'Graph:{i}, Loss: {loss_test:.4f}')
@@ -178,7 +190,7 @@ if os.path.exists("val_ans_old.pt") is not True:
         graph_label.append(0)
 
     for i in tqdm(range(501, 525)):
-        path = "../data/graph_" + str(i) + ".TemporalData"
+        path = "/home/shahidul2k9/data/streamspot/graph/graph_" + str(i) + ".TemporalData"
         test_graph = torch.load(path)
         test_ap, test_auc, pos_out_test, neg_out_test, loss_test = test_new(test_graph)
         print(f'Graph:{i}, Loss: {loss_test:.4f}')
@@ -188,9 +200,9 @@ if os.path.exists("val_ans_old.pt") is not True:
     print(f"test cost time:{time.time() - start}")
 
     val_ans_old = [ all_loss, graph_label]
-    torch.save(val_ans_old, "val_ans_old.pt")
+    torch.save(val_ans_old, "/home/shahidul2k9/data/streamspot/model/val_ans_old.pt")
 else:
-    val_ans = torch.load("val_ans_old.pt")
+    val_ans = torch.load("/home/shahidul2k9/data/streamspot/model/val_ans_old.pt")
     loss_list = []
     for i in val_ans[0]:
         loss_list.append(i)
@@ -216,12 +228,12 @@ def classifier_evaluation(y_test, y_test_pred):
     return precision,recall,fscore,accuracy,auc_val
 
 
-if os.path.exists("test_ans_old.pt") is not True:
+if os.path.exists("/home/shahidul2k9/data/streamspot/model/test_ans_old.pt") is not True:
     graph_label = []
     all_loss = []
     start = time.time()
     for i in tqdm(range(25, 100)):
-        path = "../data/graph_" + str(i) + ".TemporalData"
+        path = "/home/shahidul2k9/data/streamspot/graph/graph_" + str(i) + ".TemporalData"
         test_graph = torch.load(path)
         test_ap, test_auc, pos_out_test, neg_out_test, loss_test = test_new(test_graph)
         print(f'Graph:{i}, Loss: {loss_test:.4f}')
@@ -229,7 +241,7 @@ if os.path.exists("test_ans_old.pt") is not True:
         graph_label.append(0)
 
     for i in tqdm(range(125, 200)):
-        path = "../data/graph_" + str(i) + ".TemporalData"
+        path = "/home/shahidul2k9/data/streamspot/graph/graph_" + str(i) + ".TemporalData"
         test_graph = torch.load(path)
         test_ap, test_auc, pos_out_test, neg_out_test, loss_test = test_new(test_graph)
         print(f'Graph:{i}, Loss: {loss_test:.4f}')
@@ -237,7 +249,7 @@ if os.path.exists("test_ans_old.pt") is not True:
         graph_label.append(0)
 
     for i in tqdm(range(225, 300)):
-        path = "../data/graph_" + str(i) + ".TemporalData"
+        path = "/home/shahidul2k9/data/streamspot/graph/graph_" + str(i) + ".TemporalData"
         test_graph = torch.load(path)
         test_ap, test_auc, pos_out_test, neg_out_test, loss_test = test_new(test_graph)
         print(f'Graph:{i}, Loss: {loss_test:.4f}')
@@ -245,7 +257,7 @@ if os.path.exists("test_ans_old.pt") is not True:
         graph_label.append(0)
 
     for i in tqdm(range(300, 400)):
-        path = "../data/graph_" + str(i) + ".TemporalData"
+        path = "/home/shahidul2k9/data/streamspot/graph/graph_" + str(i) + ".TemporalData"
         test_graph = torch.load(path)
         test_ap, test_auc, pos_out_test, neg_out_test, loss_test = test_new(test_graph)
         print(f'Graph:{i}, Loss: {loss_test:.4f}')
@@ -253,7 +265,7 @@ if os.path.exists("test_ans_old.pt") is not True:
         graph_label.append(1)
 
     for i in tqdm(range(425, 500)):
-        path = "../data/graph_" + str(i) + ".TemporalData"
+        path = "/home/shahidul2k9/data/streamspot/graph/graph_" + str(i) + ".TemporalData"
         test_graph = torch.load(path)
         test_ap, test_auc, pos_out_test, neg_out_test, loss_test = test_new(test_graph)
         print(f'Graph:{i}, Loss: {loss_test:.4f}')
@@ -261,7 +273,7 @@ if os.path.exists("test_ans_old.pt") is not True:
         graph_label.append(0)
 
     for i in tqdm(range(525, 600)):
-        path = "../data/graph_" + str(i) + ".TemporalData"
+        path = "/home/shahidul2k9/data/streamspot/graph/graph_" + str(i) + ".TemporalData"
         test_graph = torch.load(path)
         test_ap, test_auc, pos_out_test, neg_out_test, loss_test = test_new(test_graph)
         print(f'Graph:{i}, Loss: {loss_test:.4f}')
@@ -270,12 +282,12 @@ if os.path.exists("test_ans_old.pt") is not True:
 
     print(f"test cost time:{time.time() - start}")
     test_ans_old = [all_loss, graph_label]
-    torch.save(test_ans_old, "test_ans_old.pt")
+    torch.save(test_ans_old, "/home/shahidul2k9/data/streamspot/model/test_ans_old.pt")
 else:
     labels = []
     preds = []
 
-    test_ans = torch.load("test_ans_old.pt")
+    test_ans = torch.load("/home/shahidul2k9/data/streamspot/model/test_ans_old.pt")
     test_loss_list = []
     index = 0
     for i in test_ans[0]:
