@@ -53,6 +53,10 @@ Kairos builds a separate model for each dataset, with each dataset requiring spe
     - Create DB schema and run DML as instructed for DARPA CADETS E3 in [database.md](DARPA/settings/database.md)
     - Update PostgreSQL Path/URL and port in [config.py](DARPA/CADETS_E3/config.py)  if it is different from default.
     - Execute [Makefile](DARPA/CADETS_E3/Makefile)
+  
+    <h2 align="center">Execution Sequence</h>
+
+    ![cadets-e33-execution-sequence.png](doc/image/cadets-e33-execution-sequence.png)
 - [DARPA TC CADETS  Engagement 5](DARPA/CADETS_E5)
   - **Code Execution Steps**
      - [Download](https://drive.google.com/drive/u/0/folders/1YOaC0SMGjBnrT9952EwmKKngQkBYf4hY) dataset files.
@@ -111,6 +115,9 @@ Kairos builds a separate model for each dataset, with each dataset requiring spe
       - Create DB schema and run DML as instructed in [StreamSpotReadMe.md](StreamSpot/src/README.md)
       - Update PostgreSQL Path/URL and port in [preprocess.py](StreamSpot/src/preprocess.py) if it is different from default.
       - Run python scripts as instructed in [StreamSpotReadMe.md](StreamSpot/src/README.md)
+      <h2 align="center">Data Preprocessing Sequence</h>
+    
+  ![stream-sport-preprocessing-sequence.png](doc/image/stream-sport-preprocessing-sequence.png)
 
 [//]: # (- **Windows Environment**)
 
