@@ -13,7 +13,7 @@ KAIROS is a system designed to enhance intrusion detection and facilitate compre
 - **Investigation Tools**: Offers tools to trace and analyze the sequence of events leading to and following an intrusion.
 - **Comprehensive Analysis**: Provides a holistic view of system operations to aid in understanding complex attack vectors.
 ## High Level System Overview
-Attack detection and investigation program consist the following 4 high level steps:
+The attack detection and investigation program consists of four key steps:
       <h2 align="center">Data Preprocessing</h>
     
 ![preprocessing-sequence.png](doc/image/preprocessing-sequence.png)
