@@ -49,6 +49,7 @@ The attack detection and investigation program consists of four key steps:
 2. **Virtual Environment Set Up**:
 
    Follow the Python runtime environment setup instructions written in [Anaconda Python Environment](DARPA/settings/environment-settings.md)
+
 3. **Database Set Up**:
 
    The preprocessing steps involve storing the parsed logs into a database for each dataset. To work with a specific dataset, you need to create a schema specific for that dataset. Instructions for creating the database is located in [PostgreSQL Database](DARPA/settings/database.md)
@@ -60,6 +61,9 @@ Kairos builds a separate model for each dataset, with each dataset requiring spe
 
 
 [//]: # (- **Unix Environment**)
+- **[Custom Dataset](CustomDataset_CVE-2021-4034/readme.md)**
+  - Collected custom attack data using CVE-2021-4034, Auditd, SPADE, Neo4j
+
 - **[DARPA TC CADETS Engagement 3](DARPA/CADETS_E3)**
   - **Code Execution Steps**
     - [Download](https://drive.google.com/drive/u/0/folders/179uDuz62Aw61Ehft6MoJCpPeBEz16VFy) dataset and extract files.
@@ -74,7 +78,7 @@ Kairos builds a separate model for each dataset, with each dataset requiring spe
 - [DARPA TC CADETS  Engagement 5](DARPA/CADETS_E5)
   - **Code Execution Steps**
      - [Download](https://drive.google.com/drive/u/0/folders/1YOaC0SMGjBnrT9952EwmKKngQkBYf4hY) dataset files.
-     - Decompress CMD files with [ta3-java-consumer](https://github.com/darpa-i2o/Transparent-Computing/blob/master/README-E3.md)
+     - Decompress CMD files with [ta3-java-consumer](https://github.com/darpa-i2o/Transparent-Computing/blob/master/README-E3.md) and [converter](/Tools/DARPA_TC_E5_JSON_converter/Readme.md)
      - Update dataset directory in [cadets5_datapreprocess.ipynb](DARPA/CADETS_E5/cadets5_datapreprocess.ipynb)
      - Create DB schema and run DML as instructed for CADETS E5 in [cadets5_datapreprocess.ipynb](DARPA/CADETS_E5/cadets5_datapreprocess.ipynb)
      - Update PostgreSQL Path/URL and port in [cadets5_datapreprocess.ipynb](DARPA/CADETS_E5/cadets5_datapreprocess.ipynb)  if it is different from default.
@@ -91,7 +95,7 @@ Kairos builds a separate model for each dataset, with each dataset requiring spe
 - [DARPA TC CLEARSCOPE  Engagement 5](DARPA/CLEARSCOPE_E5)
   - **Code Execution Steps**
     - [Download](https://drive.google.com/drive/u/0/folders/1S-LrRdu1tCjUMQA_VdKj_OXWs4BA7Hk_) dataset files.
-    - Decompress CMD files with [ta3-java-consumer](https://github.com/darpa-i2o/Transparent-Computing/blob/master/README-E3.md)
+    - Decompress CMD files with [ta3-java-consumer](https://github.com/darpa-i2o/Transparent-Computing/blob/master/README-E3.md) and [converter](/Tools/DARPA_TC_E5_JSON_converter/Readme.md)
     - Update dataset directory in [clearscope5_datapreprocess.ipynb](DARPA/CLEARSCOPE_E5/clearscope5_datapreprocess.ipynb)
     - Create DB schema and run DML as instructed for CLEARSCOPE E5 in [database.md](DARPA/settings/database.md)
     - Update PostgreSQL Path/URL and port in  [clearscope5_datapreprocess.ipynb](DARPA/CLEARSCOPE_E5/clearscope5_datapreprocess.ipynb) if it is different from default.
@@ -116,7 +120,7 @@ Kairos builds a separate model for each dataset, with each dataset requiring spe
 - [DARPA TC THEIA  Engagement 5](DARPA/THEIA_E5)
   - **Code Execution Steps**
      - [Download](https://drive.google.com/drive/u/0/folders/13zdJvC62zsJc2nD7KWxtN9xkk05LdQGw) dataset files.
-     - Decompress CMD files with [ta3-java-consumer](https://github.com/darpa-i2o/Transparent-Computing/blob/master/README-E3.md)
+     - Decompress CMD files with [ta3-java-consumer](https://github.com/darpa-i2o/Transparent-Computing/blob/master/README-E3.md) and [converter](/Tools/DARPA_TC_E5_JSON_converter/Readme.md)
      - Update dataset directory in [theia5_datapreprocess.ipynb](DARPA/THEIA_E5/theia5_datapreprocess.ipynb)
      - Create DB schema and run DML as instructed for THEIA E5 in [theia5_datapreprocess.ipynb](DARPA/THEIA_E5/theia5_datapreprocess.ipynb)
      - Update PostgreSQL Path/URL and port in [theia5_datapreprocess.ipynb](DARPA/THEIA_E5/theia5_datapreprocess.ipynb)  if it is different from default.
